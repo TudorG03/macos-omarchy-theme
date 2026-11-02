@@ -63,6 +63,12 @@ The cursor is not part of this repository. `install.sh` downloads a pinned,
 checksum-verified release of [apple_cursor](https://github.com/ful1e5/apple_cursor),
 which is licensed under GPL-3.0.
 
+## hyprbars
+
+`hyprbars` is not part of this repository. `install.sh` builds it from
+[hyprland-plugins](https://github.com/hyprwm/hyprland-plugins), which is licensed under BSD-3-Clause,
+using the commit that project lists for your Hyprland version.
+
 ## Trademarks
 
 Apple, the Apple logo, macOS, Finder, Spotlight, Mission Control, Launchpad and

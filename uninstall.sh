@@ -31,6 +31,11 @@ rm -rf "$OMARCHY_CONFIG/themes/cupertino" "$ICONS_DIR/Cupertino"
 rm -rf "$OMARCHY_CONFIG"/plugins/cupertino.*
 omarchy-shell shell rescanPlugins >/dev/null 2>&1 || true
 
+if [[ -f $STATE_DIR/hyprbars-installed ]]; then
+  rm -f "$HOME"/.local/share/hyprland-plugins/hyprbars-*.so
+  rmdir "$HOME/.local/share/hyprland-plugins" 2>/dev/null || true
+fi
+
 if [[ -f $STATE_DIR/cursor-installed ]]; then
   rm -rf "$ICONS_DIR/macOS"
 fi

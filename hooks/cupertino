@@ -6,6 +6,8 @@ SAVED_BAR=$HOME/.local/state/omarchy/cupertino-bar.json
 SAVED_BUTTONS=$HOME/.local/state/omarchy/cupertino-buttons
 GTK_CSS=$HOME/.config/gtk-4.0/gtk.css
 THEME_CSS=$HOME/.config/omarchy/themes/cupertino/gtk.css
+GTK3_CSS=$HOME/.config/gtk-3.0/gtk.css
+THEME_GTK3_CSS=$HOME/.config/omarchy/themes/cupertino/gtk3.css
 PLUGINS=(cupertino.osd cupertino.media cupertino.apple-menu cupertino.app-name cupertino.dock cupertino.spotlight cupertino.mission-control cupertino.hot-corners cupertino.control-center cupertino.clock cupertino.launchpad cupertino.app-switcher cupertino.system-font)
 BUTTON_LAYOUT="org.gnome.desktop.wm.preferences button-layout"
 
@@ -130,6 +132,8 @@ if [[ $1 == cupertino ]]; then
   # Never replace a gtk.css the user wrote themselves.
   mkdir -p "${GTK_CSS%/*}"
   [[ -e $GTK_CSS && ! -L $GTK_CSS ]] || ln -nsf "$THEME_CSS" "$GTK_CSS"
+  mkdir -p "${GTK3_CSS%/*}"
+  [[ -e $GTK3_CSS && ! -L $GTK3_CSS ]] || ln -nsf "$THEME_GTK3_CSS" "$GTK3_CSS"
 elif [[ -f $SAVED_BAR ]]; then
   for plugin in "${PLUGINS[@]}"; do
     omarchy plugin disable "$plugin" >/dev/null
@@ -143,5 +147,6 @@ elif [[ -f $SAVED_BAR ]]; then
   gsettings set $BUTTON_LAYOUT "$(<"$SAVED_BUTTONS")"
   rm -f "$SAVED_BUTTONS"
   [[ $(readlink "$GTK_CSS") == "$THEME_CSS" ]] && rm -f "$GTK_CSS"
+  [[ $(readlink "$GTK3_CSS") == "$THEME_GTK3_CSS" ]] && rm -f "$GTK3_CSS"
 fi
 true

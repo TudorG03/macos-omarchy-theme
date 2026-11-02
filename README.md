@@ -32,6 +32,7 @@ takes about a minute. Run it again at any time to update.
 | `--yes` | Skip the confirmation |
 | `--keep-terminal` | Keep your default terminal instead of switching to Ghostty |
 | `--no-cursor` | Skip downloading the macOS cursor |
+| `--no-title-bars` | Skip building hyprbars, so only GTK apps and Ghostty get traffic lights |
 
 `omarchy theme install` is not enough for this theme. It drops `hyprland.lua` and
 `ghostty.conf` from cloned themes, and it can't add plugins, hooks or icons.
@@ -54,19 +55,32 @@ the theme uses Hyprland's Lua config and Omarchy's shell plugin API.
 Spotlight also does maths, unit and currency conversion, world clocks, file search and
 `!bang` web searches.
 
-Traffic lights appear on Ghostty and GTK apps. Red closes, yellow minimizes to the Dock,
-and green switches a window between tiled and floating.
+### Traffic lights
+
+Every window gets them: red closes, yellow fades the window out and minimizes it to the Dock,
+and green switches it between tiled and floating.
+
+Ghostty and GNOME/GTK apps draw their own. Everything else, including browsers and web apps,
+gets a slim title bar from [hyprbars](https://github.com/hyprwm/hyprland-plugins), which
+`install.sh` builds for your Hyprland version. **After a Hyprland update, run `./install.sh`
+again.** Until you do, those apps have no lights, but nothing breaks.
+
+Chromium and VS Code draw their own buttons as well. To avoid two sets:
+
+- **Chromium:** Settings → Appearance → "Use system title bar and borders".
+- **VS Code:** set `"window.titleBarStyle": "native"` in settings.
+- **Zen:** if needed, set `browser.tabs.inTitlebar` to `0` in `about:config`.
 
 ## What it changes
 
 - **Added:** `~/.config/omarchy/themes/cupertino`, `~/.config/omarchy/plugins/cupertino.*`,
-  `~/.config/omarchy/hooks/theme-set.d/cupertino`, and `~/.local/share/icons/Cupertino` and `macOS`.
+  `~/.config/omarchy/hooks/theme-set.d/cupertino`, and `~/.local/share/icons/Cupertino` and `macOS`, and `~/.local/share/hyprland-plugins/hyprbars-<version>.so`.
 - **While the theme is active:** the bar layout, GTK button layout, cursor,
-  `~/.config/gtk-4.0/gtk.css` (only if you don't have your own) and Mac names for some apps,
+  `~/.config/gtk-4.0/gtk.css` and `~/.config/gtk-3.0/gtk.css` (only if you don't have your own) and Mac names for some apps,
   using marked copies in `~/.local/share/applications`.
 - **Packages:** anything missing from `yaru-icon-theme`, `adwaita-fonts`,
   `ttf-jetbrains-mono-nerd`, `nautilus`, `gtk3`, `uwsm`, `networkmanager`, `bluez-utils`,
-  `wireplumber`, `jq` and `ghostty`.
+  `wireplumber`, `jq` and `ghostty`, plus `git`, `gcc`, `make` and `pkgconf` to build hyprbars.
 
 Switching to another theme undoes the "while active" changes, and switching back reapplies them.
 
@@ -91,7 +105,8 @@ Edit the installed copies. Omarchy reloads plugins when you save them, but re-ru
 ## Troubleshooting
 
 - **The bar or volume popup looks stock:** run `omarchy restart shell`.
-- **Traffic lights are missing in an open app:** restart the app.
+- **Traffic lights are missing in an open app:** restart the app. If a browser has none, run `./install.sh` again.
+- **The session crashes after enabling hyprbars:** press `Ctrl+Alt+F3`, log in, run `rm ~/.local/share/hyprland-plugins/hyprbars-*.so`, then log back in.
 - **Hyprland shows a config error:** check `hyprctl configerrors`, then run `./uninstall.sh` if needed.
 
 ## Contributing

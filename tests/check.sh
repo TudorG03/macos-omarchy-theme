@@ -5,7 +5,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 status=0
 fail() { echo "FAIL: $*"; status=1; }
 
-for script in install.sh uninstall.sh hooks/cupertino tests/check.sh; do
+for script in install.sh uninstall.sh hooks/cupertino theme/minimize.sh tests/check.sh; do
   bash -n "$script" || fail "$script has a syntax error"
 done
 

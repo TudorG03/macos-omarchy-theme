@@ -91,10 +91,63 @@ o.bind("SUPER + SUPER_L", "App Switcher commit", "omarchy-shell shell call cuper
 -- Command-Q.
 o.bind("SUPER + Q", "Close window", hl.dsp.window.close())
 
+local minimize_script = os.getenv("HOME") .. "/.config/omarchy/themes/cupertino/minimize.sh"
+
+-- Traffic lights on every window. install.sh builds the plugin for the running Hyprland and names
+-- the file after that version, so a later update simply skips it instead of risking a crash at login.
+local hyprbars = os.getenv("HOME") .. "/.local/share/hyprland-plugins/hyprbars-" .. hl.version() .. ".so"
+local hyprbars_file = io.open(hyprbars, "r")
+if hyprbars_file then
+  hyprbars_file:close()
+  hl.plugin.load(hyprbars)
+end
+
+if hl.plugin.hyprbars then
+  hl.config({
+    plugin = {
+      hyprbars = {
+        bar_height = 28,
+        bar_color = "rgb(262628)",
+        ["col.text"] = "rgb(e5e5e7)",
+        bar_text_font = "Adwaita Sans",
+        bar_text_size = 10,
+        bar_text_align = "center",
+        bar_buttons_alignment = "left",
+        bar_part_of_window = true,
+        bar_precedence_over_border = true,
+        bar_padding = 12,
+        bar_button_padding = 8,
+        inactive_button_color = "rgb(4a4a4c)",
+        on_double_click = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\" })'",
+      },
+    },
+  })
+
+  local function traffic_light(color, action)
+    hl.plugin.hyprbars.add_button({ bg_color = color, fg_color = "rgba(00000000)", size = 13, icon = "", action = "hyprctl dispatch '" .. action .. "'" })
+  end
+  traffic_light("rgb(ff5f57)", "hl.dsp.window.close()")
+  hl.plugin.hyprbars.add_button({ bg_color = "rgb(febc2e)", fg_color = "rgba(00000000)", size = 13, icon = "", action = "sh " .. minimize_script })
+  traffic_light("rgb(28c840)", 'hl.dsp.window.float({ action = "toggle" })')
+
+  -- These draw their own traffic lights, so a second bar would double them up.
+  hl.window_rule({
+    match = { class = "^(com\\.mitchellh\\.ghostty|org\\.omarchy\\.agent|org\\.gnome\\..*|com\\.github\\.PintaProject\\.Pinta|xdg-desktop-portal-gtk|org\\.quickshell)$" },
+    ["hyprbars:no_bar"] = true,
+  })
+end
+
 -- Hyprland ignores the minimize and maximize requests from GTK title bar buttons, so catch
 -- the click itself. Positions are relative to the window and come from the theme's gtk.css.
-local traffic_light_windows = { ["com.mitchellh.ghostty"] = true, ["org.omarchy.agent"] = true, ["org.gnome.Nautilus"] = true }
+local traffic_light_classes = { "^com%.mitchellh%.ghostty$", "^org%.omarchy%.agent$", "^org%.gnome%.", "^com%.github%.PintaProject%.Pinta$" }
 local traffic_light_y, traffic_light_reach = 22, 10
+
+local function draws_traffic_lights(class)
+  for _, pattern in ipairs(traffic_light_classes) do
+    if class:find(pattern) then return true end
+  end
+  return false
+end
 
 -- These cover the whole screen but let clicks through.
 local click_through_layers = { ["omarchy-osd"] = true, ["omarchy-notifications"] = true }
@@ -111,12 +164,12 @@ end
 
 hl.bind("mouse:272", function()
   local window, cursor = hl.get_active_window(), hl.get_cursor_pos()
-  if not window or not cursor or not traffic_light_windows[window.class] or window.fullscreen ~= 0 then return end
+  if not window or not cursor or not draws_traffic_lights(window.class) or window.fullscreen ~= 0 then return end
   local x, y = cursor.x - window.at.x, cursor.y - window.at.y
   if math.abs(y - traffic_light_y) > traffic_light_reach or covered_by_layer(cursor.x, cursor.y) then return end
 
   if math.abs(x - 39) <= traffic_light_reach then
-    hl.dispatch(hl.dsp.window.move({ workspace = "special:minimized", follow = false, window = "address:" .. window.address }))
+    hl.dispatch(hl.dsp.exec_cmd("sh " .. minimize_script .. " " .. window.address))
   elseif math.abs(x - 60) <= traffic_light_reach then
     hl.dispatch(hl.dsp.window.float({ action = "toggle", window = "address:" .. window.address }))
   end

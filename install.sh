@@ -1,6 +1,6 @@
 #!/bin/bash
 # Installs the Cupertino theme for Omarchy. Run it again to update.
-#   ./install.sh [--yes] [--keep-terminal] [--no-cursor]
+#   ./install.sh [--yes] [--keep-terminal] [--no-cursor] [--no-title-bars]
 set -euo pipefail
 
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -10,16 +10,20 @@ STATE_DIR=$HOME/.local/state/cupertino-omarchy
 TESTED_OMARCHY=4
 TESTED_HYPRLAND=0.56
 PACKAGES=(yaru-icon-theme adwaita-fonts ttf-jetbrains-mono-nerd nautilus gtk3 uwsm networkmanager bluez-utils wireplumber jq)
+BUILD_PACKAGES=(git gcc make pkgconf)
+PLUGINS_URL=https://github.com/hyprwm/hyprland-plugins.git
+PLUGINS_DIR=$HOME/.local/share/hyprland-plugins
 GHOSTTY_ID=com.mitchellh.ghostty.desktop
 CURSOR_URL=https://github.com/ful1e5/apple_cursor/releases/download/v2.0.1/macOS.tar.xz
 CURSOR_SHA256=9c6e5e13b068ce51a9e90a9abd6ce232ec7d25d4ceb05aa8ac76efbb99c76762
 
-ASSUME_YES=0 KEEP_TERMINAL=0 WITH_CURSOR=1
+ASSUME_YES=0 KEEP_TERMINAL=0 WITH_CURSOR=1 WITH_BARS=1
 for arg in "$@"; do
   case $arg in
     --yes | -y) ASSUME_YES=1 ;;
     --keep-terminal) KEEP_TERMINAL=1 ;;
     --no-cursor) WITH_CURSOR=0 ;;
+    --no-title-bars) WITH_BARS=0 ;;
     -h | --help) sed -n 2,3p "$0" | cut -c3-; exit 0 ;;
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
   esac
@@ -55,6 +59,7 @@ if (( ! KEEP_TERMINAL )) && [[ $(grep -sv '^#' "$HOME/.config/xdg-terminals.list
   switch_terminal=1
 fi
 
+(( ! WITH_BARS )) || PACKAGES+=("${BUILD_PACKAGES[@]}")
 missing=()
 for package in "${PACKAGES[@]}"; do
   pacman -Q "$package" >/dev/null 2>&1 || missing+=("$package")
@@ -64,6 +69,7 @@ say "This will:"
 (( ${#missing[@]} == 0 )) || echo "  - install packages (needs sudo): ${missing[*]}"
 (( ! switch_terminal )) || echo "  - make Ghostty your default terminal (keep yours with --keep-terminal)"
 (( ! WITH_CURSOR )) || echo "  - download the macOS cursor from github.com/ful1e5/apple_cursor (skip with --no-cursor)"
+(( ! WITH_BARS )) || echo "  - build hyprbars from github.com/hyprwm/hyprland-plugins for traffic lights on every app (skip with --no-title-bars)"
 echo "  - add the Cupertino theme, 13 shell plugins, a theme hook and an icon theme"
 echo "  - back up your shell.json to $STATE_DIR, then switch to the theme"
 echo "  Plugins, the hook and the theme run as your user, so read them first if you don't trust this repo."
@@ -109,6 +115,32 @@ if (( WITH_CURSOR )) && [[ ! -d $ICONS_DIR/macOS || -f $STATE_DIR/cursor-install
   fi
 fi
 
+# Built here because a plugin only loads in the exact Hyprland it was compiled against.
+# Hyprland's plugin repo lists which of its commits matches each Hyprland commit.
+build_hyprbars() {
+  local version commit pin source
+  version=$(hyprctl version -j | jq -r .version)
+  commit=$(hyprctl version -j | jq -r .commit)
+  source=$(mktemp -d)
+  # shellcheck disable=SC2064
+  trap "rm -rf '$source'" RETURN
+
+  git clone -q "$PLUGINS_URL" "$source" || return 1
+  pin=$(grep -m1 -oE "\"$commit\", *\"[0-9a-f]{40}\"" "$source/hyprpm.toml" | grep -oE '[0-9a-f]{40}"$' | tr -d '"')
+  [[ -n $pin ]] || { warn "hyprbars has no build for Hyprland $version yet."; return 1; }
+  git -C "$source" checkout -q "$pin" || return 1
+  make -C "$source/hyprbars" all >/dev/null 2>&1 || return 1
+
+  mkdir -p "$PLUGINS_DIR"
+  install -m 755 "$source/hyprbars/hyprbars.so" "$PLUGINS_DIR/hyprbars-$version.so"
+  touch "$STATE_DIR/hyprbars-installed"
+}
+
+if (( WITH_BARS )); then
+  say "Building hyprbars, which can take a minute"
+  build_hyprbars || warn "Could not build hyprbars, so only GTK apps and Ghostty will have traffic lights."
+fi
+
 say "Copying files"
 mkdir -p "$OMARCHY_CONFIG/themes" "$OMARCHY_CONFIG/plugins" "$OMARCHY_CONFIG/hooks/theme-set.d" "$ICONS_DIR"
 
@@ -151,4 +183,7 @@ if [[ -n ${errors//[[:space:]]/} && $errors != "no errors"* ]]; then
   echo "$errors" >&2
 fi
 
+if [[ -f $STATE_DIR/hyprbars-installed ]]; then
+  echo "Chromium and VS Code draw their own buttons too. To avoid two sets, see \"Traffic lights\" in the README."
+fi
 say "Done. Tap Super for Launchpad, press Super+Space for Spotlight, and use ./uninstall.sh to remove it."
