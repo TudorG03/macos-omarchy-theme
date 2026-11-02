@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.spotlight",
+  "name": "Spotlight",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "macOS-style search for apps, windows, files, system actions and quick maths",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Spotlight.qml" }
+}

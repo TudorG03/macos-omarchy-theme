@@ -1,0 +1,147 @@
+#!/bin/bash
+# Gives the Cupertino theme a macOS menu bar, Dock, Spotlight, Finder styling and
+# cursor, and restores the previous setup when leaving it.
+CONFIG=$HOME/.config/omarchy/shell.json
+SAVED_BAR=$HOME/.local/state/omarchy/cupertino-bar.json
+SAVED_BUTTONS=$HOME/.local/state/omarchy/cupertino-buttons
+GTK_CSS=$HOME/.config/gtk-4.0/gtk.css
+THEME_CSS=$HOME/.config/omarchy/themes/cupertino/gtk.css
+PLUGINS=(cupertino.osd cupertino.media cupertino.apple-menu cupertino.app-name cupertino.dock cupertino.spotlight cupertino.mission-control cupertino.hot-corners cupertino.control-center cupertino.clock cupertino.launchpad cupertino.app-switcher cupertino.system-font)
+BUTTON_LAYOUT="org.gnome.desktop.wm.preferences button-layout"
+
+write_config() {
+  local tmp
+  tmp=$(mktemp "$CONFIG.XXXXXX")
+  jq "$@" "$CONFIG" >"$tmp" && cat "$tmp" >"$CONFIG"
+  rm -f "$tmp"
+}
+
+# Mac names and icons for apps, and system utilities out of Launchpad. Each change is
+# marked in the desktop file so leaving the theme restores it exactly.
+APPS_DIR=$HOME/.local/share/applications
+
+mac_app() {
+  local id=$1 name=$2 icon=$3 hide=$4 file="$APPS_DIR/$1.desktop" keys=""
+  grep -qs '^X-Cupertino' "$file" && return
+
+  if [[ -f $file ]]; then
+    keys="X-Cupertino-Edited=true"
+  elif [[ -f /usr/share/applications/$id.desktop ]]; then
+    install -m 644 "/usr/share/applications/$id.desktop" "$file"
+    keys="X-Cupertino-Copy=true"
+  else
+    return 0
+  fi
+
+  if [[ -n $name ]]; then
+    keys+=$'\n'"X-Cupertino-Name=$(sed -n 's/^Name=//p' "$file" | head -1)"
+    sed -i "0,/^Name=.*/s//Name=$name/" "$file"
+  fi
+  if [[ -n $icon ]]; then
+    keys+=$'\n'"X-Cupertino-Icon=$(sed -n 's/^Icon=//p' "$file" | head -1)"
+    sed -i "0,/^Icon=.*/s//Icon=$icon/" "$file"
+  fi
+  if [[ -n $hide ]] && grep -q '^NoDisplay=false' "$file"; then
+    keys+=$'\n'"X-Cupertino-WasShown=true"
+    sed -i 's/^NoDisplay=false/NoDisplay=true/' "$file"
+  elif [[ -n $hide ]] && ! grep -q '^NoDisplay=true' "$file"; then
+    keys+=$'\n'"X-Cupertino-Hidden=true"$'\n'"NoDisplay=true"
+  fi
+
+  awk -v keys="$keys" 'BEGIN { gsub(/\\n/, "\n", keys) } !done && /^\[Desktop Entry\]/ { print; print keys; done = 1; next } { print }' "$file" >"$file.tmp" && cat "$file.tmp" >"$file"
+  rm -f "$file.tmp"
+}
+
+mac_apps_apply() {
+  mac_app org.gnome.Nautilus Finder
+  mac_app com.mitchellh.ghostty Terminal cupertino-terminal
+  mac_app btop "Activity Monitor" cupertino-activity
+  mac_app org.gnome.DiskUtility "Disk Utility"
+  mac_app imv Preview
+  mac_app mpv "QuickTime Player"
+  mac_app omacalc Calculator
+  mac_app omawrite TextEdit
+
+  local id
+  for id in foot footclient foot-server fcitx5-configtool lstopo cppcheck-gui limine-snapper-restore \
+    qv4l2 qvidcap system-config-printer cups uuctl voxtype-configure yazi nvim inlyne cliamp \
+    org.pwmt.zathura org.gnome.Evince org.gnome.Papers "Disk Usage"; do
+    mac_app "$id" "" "" hide
+  done
+}
+
+mac_apps_restore() {
+  local file value
+  for file in "$APPS_DIR"/*.desktop; do
+    grep -q '^X-Cupertino' "$file" || continue
+    if grep -q '^X-Cupertino-Copy=true' "$file"; then
+      rm -f "$file"
+      continue
+    fi
+    if grep -q '^X-Cupertino-Name=' "$file"; then
+      value=$(sed -n 's/^X-Cupertino-Name=//p' "$file" | head -1)
+      sed -i "0,/^Name=.*/s//Name=$value/" "$file"
+    fi
+    if grep -q '^X-Cupertino-Icon=' "$file"; then
+      value=$(sed -n 's/^X-Cupertino-Icon=//p' "$file" | head -1)
+      sed -i "0,/^Icon=.*/s//Icon=$value/" "$file"
+    fi
+    if grep -q '^X-Cupertino-WasShown=true' "$file"; then
+      sed -i 's/^NoDisplay=true/NoDisplay=false/' "$file"
+    fi
+    if grep -q '^X-Cupertino-Hidden=true' "$file"; then
+      sed -i '0,/^NoDisplay=true$/{/^NoDisplay=true$/d}' "$file"
+    fi
+    sed -i '/^X-Cupertino/d' "$file"
+  done
+}
+
+set_cursor() {
+  hyprctl eval "hl.env('XCURSOR_THEME', '$1')" >/dev/null
+  hyprctl setcursor "$1" 24 >/dev/null
+  gsettings set org.gnome.desktop.interface cursor-theme "$1"
+}
+
+if [[ $1 == cupertino ]]; then
+  [[ -f $SAVED_BAR ]] || jq .bar "$CONFIG" >"$SAVED_BAR"
+  [[ -f $SAVED_BUTTONS ]] || gsettings get $BUTTON_LAYOUT >"$SAVED_BUTTONS"
+
+  for plugin in "${PLUGINS[@]}"; do
+    omarchy plugin enable "$plugin" >/dev/null
+  done
+
+  write_config --slurpfile saved "$SAVED_BAR" '
+    ($saved[0].layout | [.left, .center, .right] | add) as $widgets
+    | ["omarchy.menu", "omarchy.workspaces", "omarchy.clock", "omarchy.weather", "cupertino.media", "omarchy.media", "omarchy.monitor"] as $moved
+    | .bar = ($saved[0]
+      | del(.centerAnchor)
+      | .transparent = false
+      | .layout = {
+          left: [{id: "cupertino.apple-menu"}, {id: "cupertino.app-name"}, {id: "cupertino.media"}],
+          center: [],
+          right: ([$widgets[] | select(.id as $id | $moved | index($id) | not)
+              | if .id == "omarchy.audio" then ., {id: "omarchy.monitor"} else . end]
+            + [{id: "cupertino.control-center"}, {id: "cupertino.clock"}])
+        })'
+  set_cursor macOS
+  mac_apps_apply
+  gsettings set $BUTTON_LAYOUT 'close,minimize,maximize:appmenu'
+
+  # Never replace a gtk.css the user wrote themselves.
+  mkdir -p "${GTK_CSS%/*}"
+  [[ -e $GTK_CSS && ! -L $GTK_CSS ]] || ln -nsf "$THEME_CSS" "$GTK_CSS"
+elif [[ -f $SAVED_BAR ]]; then
+  for plugin in "${PLUGINS[@]}"; do
+    omarchy plugin disable "$plugin" >/dev/null
+  done
+
+  write_config --slurpfile saved "$SAVED_BAR" '.bar = $saved[0]'
+  rm -f "$SAVED_BAR"
+  set_cursor default
+  mac_apps_restore
+
+  gsettings set $BUTTON_LAYOUT "$(<"$SAVED_BUTTONS")"
+  rm -f "$SAVED_BUTTONS"
+  [[ $(readlink "$GTK_CSS") == "$THEME_CSS" ]] && rm -f "$GTK_CSS"
+fi
+true

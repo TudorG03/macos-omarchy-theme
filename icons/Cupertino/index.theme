@@ -1,0 +1,20 @@
+[Icon Theme]
+Name=Cupertino
+Comment=Blue macOS-style folders on top of Yaru
+Inherits=Yaru-blue-dark,Yaru-blue,Yaru-dark,Yaru,Adwaita,hicolor
+Example=folder
+Directories=scalable/places,scalable/apps
+
+[scalable/places]
+Context=Places
+Size=128
+MinSize=8
+MaxSize=512
+Type=Scalable
+
+[scalable/apps]
+Context=Applications
+Size=128
+MinSize=8
+MaxSize=512
+Type=Scalable

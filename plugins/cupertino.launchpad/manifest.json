@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.launchpad",
+  "name": "Launchpad",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "Full-screen grid of all apps",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Launchpad.qml" }
+}

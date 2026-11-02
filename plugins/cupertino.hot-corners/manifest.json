@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.hot-corners",
+  "name": "Hot Corners",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "Screen corners that open Mission Control and App Expose",
+  "kinds": ["service"],
+  "keepLoaded": true,
+  "entryPoints": { "service": "Service.qml" }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.app-name",
+  "name": "App name",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "Bold name of the focused app, like the macOS menu bar",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": {
+    "displayName": "App name",
+    "description": "Bold name of the focused app",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}

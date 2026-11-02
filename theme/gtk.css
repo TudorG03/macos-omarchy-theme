@@ -1,0 +1,60 @@
+/* Traffic lights for every libadwaita window while Cupertino is active. */
+windowcontrols { border-spacing: 8px; margin: 0 6px; }
+windowcontrols > button, windowcontrols > button:disabled { min-width: 13px; min-height: 13px; padding: 0; margin: 0; background: none; box-shadow: none; opacity: 1; filter: none; }
+windowcontrols > button > image {
+  min-width: 13px; min-height: 13px; padding: 0; margin: 0;
+  border-radius: 50%; color: transparent; -gtk-icon-size: 9px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+windowcontrols > button > image:disabled { opacity: 1; filter: none; }
+windowcontrols > button.close > image { background-color: #ff5f57; }
+windowcontrols > button.minimize > image { background-color: #febc2e; }
+windowcontrols > button.maximize > image { background-color: #28c840; }
+windowcontrols:hover > button > image { color: rgba(0, 0, 0, 0.6); }
+windowcontrols > button:active > image { filter: brightness(0.8); }
+window:backdrop windowcontrols > button > image { background-color: #4a4a4c; box-shadow: none; }
+
+/* macOS dark palette for every libadwaita app. */
+:root {
+  --accent-bg-color: #0a84ff;
+  --accent-color: #409cff;
+  --window-bg-color: #1e1e1e;
+  --view-bg-color: #1e1e1e;
+  --headerbar-bg-color: #262628;
+  --headerbar-backdrop-color: #1e1e1e;
+  --dialog-bg-color: #2c2c2e;
+  --popover-bg-color: #2c2c2e;
+  --card-bg-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Finder */
+window.nautilus-window {
+  --window-bg-color: #1e1e1e;
+  --view-bg-color: #1e1e1e;
+  --headerbar-bg-color: #262628;
+  --headerbar-backdrop-color: #1e1e1e;
+  --headerbar-shade-color: rgba(0, 0, 0, 0.5);
+  --sidebar-bg-color: #2a2a2c;
+  --sidebar-backdrop-color: #252527;
+  --sidebar-shade-color: rgba(0, 0, 0, 0.35);
+  --accent-bg-color: #0a84ff;
+  --accent-color: #409cff;
+  font-size: 13px;
+}
+window.nautilus-window .navigation-sidebar { background: none; padding: 4px 8px; }
+window.nautilus-window .navigation-sidebar row { border-radius: 6px; min-height: 26px; margin: 1px 0; }
+window.nautilus-window .navigation-sidebar row image { color: #409cff; }
+window.nautilus-window .navigation-sidebar row:selected { background-color: rgba(255, 255, 255, 0.13); }
+window.nautilus-window headerbar { box-shadow: 0 1px rgba(0, 0, 0, 0.45); }
+window.nautilus-window gridview > child { border-radius: 8px; background: none; }
+window.nautilus-window gridview > child:selected { background: none; }
+window.nautilus-window gridview > child:selected image { background-color: rgba(255, 255, 255, 0.12); border-radius: 6px; }
+window.nautilus-window gridview > child:selected label { background-color: #0058d0; color: #ffffff; border-radius: 5px; padding: 0 5px; }
+window.nautilus-window columnview > listview > row:selected { background-color: #0058d0; color: #ffffff; border-radius: 6px; }
+window.nautilus-window .content-pane { background-color: #1e1e1e; }
+window.nautilus-window .sidebar-pane { background-color: #2a2a2c; }
+window.nautilus-window .sidebar-pane headerbar { background: none; box-shadow: none; }
+window.nautilus-window .sidebar-pane headerbar windowtitle { opacity: 0; }
+
+/* Terminal: traffic lights without the window title. */
+window.window headerbar windowtitle { opacity: 0; }

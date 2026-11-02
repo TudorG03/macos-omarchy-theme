@@ -1,0 +1,24 @@
+name: Bug report
+description: Something in the theme doesn't work
+labels: [bug]
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `omarchy version` and `hyprctl version | head -1`
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what happened instead. Remove personal details from logs and screenshots.
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: Config errors
+      description: Output of `hyprctl configerrors`
+      render: text

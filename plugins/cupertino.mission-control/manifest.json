@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.mission-control",
+  "name": "Mission Control",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "macOS-style overview with live window previews and a desktops strip",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "MissionControl.qml" }
+}

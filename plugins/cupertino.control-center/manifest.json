@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.control-center",
+  "name": "Control Center",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "macOS-style toggles, sliders and now playing",
+  "kinds": ["bar-widget"],
+  "keepLoaded": true,
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": { "displayName": "Control Center", "description": "Toggles, sliders and now playing", "category": "Compositor", "allowMultiple": false, "defaultSection": "right" }
+}

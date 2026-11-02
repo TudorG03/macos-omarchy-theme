@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.system-font",
+  "name": "System Font",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "Uses a San Francisco-like font across the shell while enabled",
+  "kinds": ["service"],
+  "keepLoaded": true,
+  "entryPoints": { "service": "Service.qml" }
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.dock",
+  "name": "Dock",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "Frosted macOS-style dock with magnification and running indicators",
+  "kinds": ["service"],
+  "keepLoaded": true,
+  "entryPoints": { "service": "Service.qml" }
+}

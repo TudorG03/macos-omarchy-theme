@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.clock",
+  "name": "Menu Bar Clock",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "macOS-style clock that opens Notification Center",
+  "kinds": ["bar-widget"],
+  "keepLoaded": true,
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": { "displayName": "Menu Bar Clock", "description": "Clock and Notification Center", "category": "Compositor", "allowMultiple": false, "defaultSection": "right" }
+}

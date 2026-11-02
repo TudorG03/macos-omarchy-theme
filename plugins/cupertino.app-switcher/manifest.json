@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "cupertino.app-switcher",
+  "name": "App Switcher",
+  "version": "1.0.0",
+  "author": "Cupertino for Omarchy contributors",
+  "description": "Command-Tab style app switcher",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "AppSwitcher.qml" }
+}
